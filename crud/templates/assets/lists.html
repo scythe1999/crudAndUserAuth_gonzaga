@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  {% if messages %}
+  <div class="messages-container mx-3">
+      {% for message in messages %}
+      <div class="alert alert-primary d-flex justify-content-between align-items-center mb-2" role="alert">
+          <span>{{ message }}</span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1>Student Lists</h1>
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createStudentModal">
+        Create
+      </button>
+  </div>
+
+  <table class="table table-striped">
+      <thead>
+          <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Section</th>
+              <th scope="col">Student ID</th>
+              <th scope="col">Action</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+            <th scope="row">{{ student.firstname }} {{ student.lastname }}</th>
+            <td>{{ student.section }}</td>
+            <td>{{ student.studentid }}</td>
+            <td>
+              <a class="text-primary" href="#" onclick="populateUpdateModal({{ student.id }})" data-toggle="modal" data-target="#updateStudentModal" style="cursor: pointer;">
+                  <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+              <a class="text-danger" href="{% url 'delete' student.id %}" style="cursor: pointer;">
+                  <i class="fas fa-trash"></i>
+              </a>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createStudentModal" tabindex="-1" role="dialog" aria-labelledby="createStudentModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Student</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="{% url 'create' %}" method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="col-md-6 mb-3">
+              <input type="text" name="lastname" class="form-control" placeholder="Lastname" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <input type="text" name="firstname" class="form-control" placeholder="Firstname" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col-md-6 mb-3">
+              <input type="text" name="studentid" class="form-control" placeholder="Student ID" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <input type="text" name="section" class="form-control" placeholder="Section">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col text-right">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateStudentModal" tabindex="-1" role="dialog" aria-labelledby="updateStudentModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Student</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="updateForm" action="update" method="post">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="col-md-6 mb-3">
+              <input type="text" name="firstname_update" class="form-control" placeholder="Firstname" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <input type="text" name="lastname_update" class="form-control" placeholder="Lastname" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col-md-6 mb-3">
+              <input type="text" name="studentid_update" class="form-control" placeholder="Student ID" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <input type="text" name="section_update" class="form-control" placeholder="Section">
+            </div>
+          </div>
+          <input type="hidden" name="hiddenStudentId" id="hiddenStudentId">
+          <div class="form-row">
+            <div class="col text-right">
+              <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="text-end mb-3" style="margin-right:8rem; margin-top:2rem;">
+  <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+</div>
+<script>
+  const studentData = {{ student_data|safe }};
+
+  function populateUpdateModal(studentId) {
+      const student = studentData.find(s => s.pk === studentId).fields;
+
+      document.querySelector('input[name="firstname_update"]').value = student.firstname || '';
+      document.querySelector('input[name="lastname_update"]').value = student.lastname || '';
+      document.querySelector('input[name="studentid_update"]').value = student.studentid || '';
+      document.querySelector('input[name="section_update"]').value = student.section || '';
+      
+      document.getElementById('hiddenStudentId').value = studentId;
+      document.getElementById('updateForm').action = `/update/${studentId}/`;
+  }
+</script>
+
+{% endblock content %}
